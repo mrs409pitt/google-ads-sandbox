@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Google Ads Campaign Sandbox</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Product+Sans:wght@400;500;700&family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.26.4/babel.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #f0f2f5; font-family: 'Roboto', 'Helvetica Neue', sans-serif; }
+  input, select, textarea, button { font-family: inherit; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: #1a73e8 !important; }
+  ::placeholder { color: #9aa0a6; }
+
+  .gs { font-family: 'Product Sans', 'Roboto', sans-serif; }
+
+  /* Header */
+  .header { background: #fff; border-bottom: 1px solid #dadce0; padding: 0 24px; position: sticky; top: 0; z-index: 100; }
+  .header-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; height: 56px; gap: 16px; }
+  .header-logo { display: flex; align-items: center; gap: 8px; }
+  .header-divider { width: 1px; height: 24px; background: #dadce0; }
+  .header-title { font-size: 14px; font-weight: 500; color: #202124; }
+  .training-badge { font-size: 11px; font-weight: 500; background: #e8f0fe; color: #1a73e8; padding: 3px 10px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* Stepper */
+  .stepper { background: #fff; border-bottom: 1px solid #dadce0; padding: 0 24px; }
+  .stepper-inner { max-width: 1100px; margin: 0 auto; display: flex; }
+  .step-btn { flex: 1; padding: 14px 8px; background: none; border: none; cursor: pointer; border-bottom: 3px solid transparent; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; transition: all 0.2s; }
+  .step-btn.active { border-bottom-color: #1a73e8; color: #1a73e8; font-weight: 600; }
+  .step-btn.done { color: #137333; }
+  .step-btn.pending { color: #80868b; }
+  .step-num { width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; transition: all 0.2s; }
+  .step-num.active { background: #1a73e8; color: #fff; }
+  .step-num.done { background: #137333; color: #fff; }
+  .step-num.pending { background: #e8eaed; color: #80868b; }
+
+  /* Content */
+  .content { max-width: 1100px; margin: 0 auto; padding: 24px 24px 100px; }
+
+  /* Cards */
+  .card { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 16px; border: 1px solid #e8eaed; }
+  .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+  .card-title { font-size: 16px; font-weight: 600; color: #202124; }
+  .card-subtitle { font-size: 13px; color: #80868b; margin-top: 4px; }
+
+  /* Form elements */
+  .form-label { display: block; font-size: 12px; font-weight: 500; color: #5f6368; margin-bottom: 4px; }
+  .form-hint { font-size: 11px; color: #80868b; margin-bottom: 6px; }
+  .form-input { width: 100%; padding: 8px 12px; border-radius: 4px; border: 1px solid #dadce0; font-size: 14px; color: #202124; transition: border-color 0.2s; }
+  .form-select { width: 100%; padding: 8px 12px; border-radius: 4px; border: 1px solid #dadce0; font-size: 14px; color: #202124; background: #fff; cursor: pointer; }
+  .form-textarea { width: 100%; padding: 8px 12px; border-radius: 4px; border: 1px solid #dadce0; font-size: 14px; color: #202124; resize: vertical; }
+  .form-group { margin-bottom: 16px; }
+  .form-error { color: #d93025; font-size: 12px; margin-top: 4px; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+
+  /* Pills */
+  .pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 4px; font-size: 13px; line-height: 22px; }
+  .pill-blue { background: #e8f0fe; color: #1a56db; border: 1px solid #c3d9f7; }
+  .pill-green { background: #e6f4ea; color: #137333; border: 1px solid #b7dfbf; }
+  .pill-red { background: #fce8e6; color: #c5221f; border: 1px solid #f5c6c2; }
+  .pill-orange { background: #fef3e1; color: #b45309; border: 1px solid #fbd38d; }
+  .pill-remove { background: none; border: none; cursor: pointer; padding: 0; font-size: 15px; line-height: 1; margin-left: 2px; font-weight: 700; opacity: 0.6; color: inherit; }
+  .pill-remove:hover { opacity: 1; }
+
+  /* Buttons */
+  .btn { font-size: 13px; font-weight: 500; padding: 8px 20px; border-radius: 4px; cursor: pointer; border: none; transition: all 0.15s; letter-spacing: 0.01em; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-primary { background: #1a73e8; color: #fff; }
+  .btn-primary:hover:not(:disabled) { background: #1765cc; }
+  .btn-secondary { background: #fff; color: #1a73e8; border: 1px solid #dadce0; }
+  .btn-secondary:hover:not(:disabled) { background: #f8f9fa; }
+  .btn-danger { background: #fff; color: #d93025; border: 1px solid #dadce0; }
+  .btn-danger:hover:not(:disabled) { background: #fce8e6; }
+  .btn-success { background: #137333; color: #fff; }
+  .btn-success:hover:not(:disabled) { background: #0d5c28; }
+  .btn-sm { font-size: 12px; padding: 4px 12px; }
+
+  /* Tabs */
+  .tab-btn { padding: 8px 16px; border-radius: 20px; border: 1px solid #dadce0; background: #fff; color: #5f6368; font-size: 13px; cursor: pointer; font-weight: 500; transition: all 0.15s; }
+  .tab-btn.active { background: #e8f0fe; color: #1a73e8; border-color: #c3d9f7; }
+
+  /* Checkbox */
+  .checkbox-label { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; cursor: pointer; font-size: 13px; color: #3c4043; }
+  .checkbox-label input { accent-color: #1a73e8; width: 16px; height: 16px; }
+
+  /* Table */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .data-table th { text-align: left; padding: 8px 12px; border-bottom: 2px solid #e8eaed; color: #5f6368; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .data-table td { padding: 8px 12px; border-bottom: 1px solid #f1f3f4; color: #202124; }
+
+  /* Char counter */
+  .char-bar { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+  .char-track { flex: 1; height: 3px; border-radius: 2px; background: #e8eaed; }
+  .char-fill { height: 3px; border-radius: 2px; transition: width 0.3s, background 0.3s; }
+  .char-text { font-size: 11px; white-space: nowrap; }
+
+  /* Ad preview */
+  .ad-preview { background: #fff; border-radius: 8px; padding: 20px; max-width: 600px; border: 1px solid #e8eaed; }
+  .ad-sponsored { font-weight: 600; font-size: 11px; color: #202124; background: #f1f3f4; padding: 1px 6px; border-radius: 3px; margin-right: 6px; }
+  .ad-url { font-size: 12px; color: #202124; margin-bottom: 4px; font-family: Arial, sans-serif; }
+  .ad-headline { font-size: 20px; color: #1a0dab; font-family: Arial, sans-serif; line-height: 1.3; margin-bottom: 6px; cursor: pointer; }
+  .ad-desc { font-size: 14px; color: #4d5156; font-family: Arial, sans-serif; line-height: 1.5; }
+
+  /* Saved ad card */
+  .saved-ad { background: #f8f9fa; border-radius: 6px; padding: 14px; margin-bottom: 10px; border: 1px solid #e8eaed; }
+
+  /* Empty state */
+  .empty-state { text-align: center; padding: 40px 20px; color: #80868b; }
+  .empty-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-title { font-size: 14px; font-weight: 500; color: #5f6368; }
+  .empty-sub { font-size: 13px; margin-top: 6px; }
+
+  /* Warning / success banners */
+  .banner-warn { background: #fef7e0; border: 1px solid #f9ab00; border-radius: 8px; padding: 16px; margin-bottom: 20px; }
+  .banner-success { background: #e6f4ea; border: 1px solid #34a853; border-radius: 8px; padding: 20px; text-align: center; margin-top: 12px; }
+
+  /* Stat box */
+  .stat-box { background: #fff; border-radius: 8px; padding: 16px; border: 1px solid #e8eaed; text-align: center; }
+  .stat-icon { font-size: 24px; margin-bottom: 4px; }
+  .stat-value { font-size: 22px; font-weight: 600; color: #202124; }
+  .stat-label { font-size: 12px; color: #80868b; }
+
+  /* Review detail */
+  .review-row { font-size: 13px; padding: 4px 0; }
+  .review-key { color: #80868b; }
+  .review-val { color: #202124; font-weight: 500; }
+  .section-label { font-size: 12px; font-weight: 600; color: #5f6368; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* Bottom nav */
+  .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #dadce0; padding: 12px 24px; z-index: 100; }
+  .bottom-inner { max-width: 1100px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+  .bottom-label { font-size: 12px; color: #80868b; }
+
+  .flex-wrap { display: flex; gap: 6px; flex-wrap: wrap; }
+  .input-prefix { position: absolute; left: 10px; color: #5f6368; font-size: 14px; }
+  .input-suffix { position: absolute; right: 10px; color: #5f6368; font-size: 13px; }
+  .relative { position: relative; display: flex; align-items: center; }
+
+  .headline-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .hl-label { font-size: 11px; color: #80868b; margin-bottom: 2px; }
+  .hl-required { color: #d93025; }
+  .hl-input { width: 100%; padding: 6px 10px; border-radius: 4px; border: 1px solid #dadce0; font-size: 13px; color: #202124; }
+  .hl-input:focus { outline: none; border-color: #1a73e8; }
+
+  .desc-block { margin-bottom: 12px; }
+  .desc-textarea { width: 100%; padding: 8px 12px; border-radius: 4px; border: 1px solid #dadce0; font-size: 13px; color: #202124; resize: vertical; }
+  .desc-textarea:focus { outline: none; border-color: #1a73e8; }
+
+  @media (max-width: 768px) {
+    .grid-2, .grid-3, .grid-5, .headline-grid { grid-template-columns: 1fr; }
+    .step-btn span:last-child { display: none; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState } = React;
+
+const STEPS = [
+  { id: "campaign", label: "Campaign" },
+  { id: "adgroups", label: "Ad Groups" },
+  { id: "keywords", label: "Keywords" },
+  { id: "negatives", label: "Negatives" },
+  { id: "ads", label: "Responsive Ads" },
+  { id: "review", label: "Review" },
+];
+const MATCH_TYPES = ["Broad", "Phrase", "Exact"];
+const BID_STRATEGIES = ["Maximize Clicks","Maximize Conversions","Target CPA","Target ROAS","Manual CPC","Maximize Conversion Value"];
+const NETWORKS = ["Google Search", "Search Partners", "Display Network"];
+const DEVICE_OPTIONS = ["All Devices", "Mobile Only", "Desktop Only", "Tablet Only"];
+const AD_SCHEDULES = ["All Day", "Business Hours (9am-5pm)", "Custom"];
+
+function Pill({ children, onRemove, color = "blue" }) {
+  return (
+    <span className={`pill pill-${color} gs`}>
+      {children}
+      {onRemove && <button className="pill-remove" onClick={onRemove}>×</button>}
+    </span>
+  );
+}
+
+function CharCounter({ current, max }) {
+  const pct = (current / max) * 100;
+  const over = current > max;
+  const bg = over ? "#d93025" : pct > 80 ? "#f9ab00" : "#1a73e8";
+  return (
+    <div className="char-bar">
+      <div className="char-track"><div className="char-fill" style={{ width: Math.min(pct, 100) + "%", background: bg }} /></div>
+      <span className="char-text gs" style={{ color: over ? "#d93025" : "#80868b" }}>{current}/{max}</span>
+    </div>
+  );
+}
+
+function formatKw(kw) {
+  if (kw.matchType === "Phrase") return `"${kw.text}"`;
+  if (kw.matchType === "Exact") return `[${kw.text}]`;
+  return kw.text;
+}
+
+const matchColor = { Broad: "blue", Phrase: "orange", Exact: "green" };
+
+// ─── STEP 1: CAMPAIGN ───
+
+function CampaignStep({ data, setData }) {
+  const u = (key) => (e) => setData({ ...data, [key]: e.target ? e.target.value : e });
+  return (
+    <div>
+      <div className="card">
+        <div className="card-header"><div><div className="card-title gs">Campaign Settings</div><div className="card-subtitle gs">Configure your search campaign basics</div></div></div>
+        <div className="form-group">
+          <label className="form-label gs">Campaign Name</label>
+          <input className="form-input" value={data.name} onChange={u("name")} placeholder="e.g. Brand - Search - US" />
+        </div>
+        <div className="grid-2">
+          <div className="form-group">
+            <label className="form-label gs">Bid Strategy</label>
+            <div className="form-hint gs">How Google optimizes your bids</div>
+            <select className="form-select" value={data.bidStrategy} onChange={u("bidStrategy")}>
+              {BID_STRATEGIES.map(b => <option key={b}>{b}</option>)}
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="form-label gs">Device Targeting</label>
+            <select className="form-select" value={data.devices} onChange={u("devices")}>
+              {DEVICE_OPTIONS.map(d => <option key={d}>{d}</option>)}
+            </select>
+          </div>
+        </div>
+        {data.bidStrategy === "Target CPA" && (
+          <div className="form-group">
+            <label className="form-label gs">Target CPA</label>
+            <div className="form-hint gs">Average amount you'd like to pay per conversion</div>
+            <div className="relative"><span className="input-prefix gs">$</span><input className="form-input" style={{paddingLeft:24}} type="number" value={data.targetCpa} onChange={u("targetCpa")} placeholder="30.00" /></div>
+          </div>
+        )}
+        {data.bidStrategy === "Target ROAS" && (
+          <div className="form-group">
+            <label className="form-label gs">Target ROAS</label>
+            <div className="form-hint gs">Target return on ad spend percentage</div>
+            <div className="relative"><input className="form-input" style={{paddingRight:40}} type="number" value={data.targetRoas} onChange={u("targetRoas")} placeholder="400" /><span className="input-suffix gs">%</span></div>
+          </div>
+        )}
+      </div>
+
+      <div className="card">
+        <div className="card-header"><div><div className="card-title gs">Budget & Schedule</div><div className="card-subtitle gs">Set your daily budget and campaign dates</div></div></div>
+        <div className="grid-3">
+          <div className="form-group">
+            <label className="form-label gs">Daily Budget</label>
+            <div className="relative"><span className="input-prefix gs">$</span><input className="form-input" style={{paddingLeft:24}} type="number" value={data.dailyBudget} onChange={u("dailyBudget")} placeholder="50.00" /></div>
+          </div>
+          <div className="form-group"><label className="form-label gs">Start Date</label><input className="form-input" type="date" value={data.startDate} onChange={u("startDate")} /></div>
+          <div className="form-group"><label className="form-label gs">End Date (optional)</label><input className="form-input" type="date" value={data.endDate} onChange={u("endDate")} /></div>
+        </div>
+        <div className="form-group">
+          <label className="form-label gs">Ad Schedule</label>
+          <select className="form-select" value={data.adSchedule} onChange={u("adSchedule")}>{AD_SCHEDULES.map(s => <option key={s}>{s}</option>)}</select>
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-header"><div><div className="card-title gs">Networks</div><div className="card-subtitle gs">Where your ads will appear</div></div></div>
+        {NETWORKS.map(n => (
+          <label key={n} className="checkbox-label gs">
+            <input type="checkbox" checked={data.networks.includes(n)} onChange={e => setData({...data, networks: e.target.checked ? [...data.networks, n] : data.networks.filter(x=>x!==n)})} />
+            {n}
+          </label>
+        ))}
+      </div>
+
+      <div className="card">
+        <div className="card-header"><div><div className="card-title gs">Location & Language</div><div className="card-subtitle gs">Geographic and language targeting</div></div></div>
+        <div className="form-group"><label className="form-label gs">Target Locations</label><div className="form-hint gs">Comma-separated locations</div><input className="form-input" value={data.locations} onChange={u("locations")} placeholder="e.g. United States, Pennsylvania, Pittsburgh" /></div>
+        <div className="form-group"><label className="form-label gs">Languages</label><div className="form-hint gs">Comma-separated languages</div><input className="form-input" value={data.languages} onChange={u("languages")} placeholder="e.g. English, Spanish" /></div>
+      </div>
+    </div>
+  );
+}
+
+// ─── STEP 2: AD GROUPS ───
+
+function AdGroupsStep({ adGroups, setAdGroups }) {
+  const [newName, setNewName] = useState("");
+  const [newBid, setNewBid] = useState("");
+  const add = () => {
+    if (!newName.trim()) return;
+    setAdGroups([...adGroups, { id: Date.now(), name: newName.trim(), defaultBid: newBid || "1.00", keywords: [], negativeKeywords: [], ads: [] }]);
+    setNewName(""); setNewBid("");
+  };
+  return (
+    <div>
+      <div className="card">
+        <div className="card-header"><div><div className="card-title gs">Create Ad Groups</div><div className="card-subtitle gs">Organize your campaign into themed ad groups. Each should contain tightly related keywords.</div></div></div>
+        <div style={{display:"flex",gap:12,alignItems:"flex-end"}}>
+          <div style={{flex:2}}>
+            <div className="form-group"><label className="form-label gs">Ad Group Name</label><input className="form-input" value={newName} onChange={e=>setNewName(e.target.value)} placeholder="e.g. Brand Terms, Product - Widgets" /></div>
+          </div>
+          <div style={{flex:1}}>
+            <div className="form-group"><label className="form-label gs">Default Max CPC</label><div className="relative"><span className="input-prefix gs">$</span><input className="form-input" style={{paddingLeft:24}} type="number" value={newBid} onChange={e=>setNewBid(e.target.value)} placeholder="1.00" /></div></div>
+          </div>
+          <button className="btn btn-primary gs" disabled={!newName.trim()} onClick={add} style={{marginBottom:16}}>+ Add Group</button>
+        </div>
+      </div>
+      {adGroups.length === 0 ? (
+        <div className="empty-state"><div className="empty-icon">📁</div><div className="empty-title gs">No ad groups yet</div><div className="empty-sub gs">Create your first ad group above to get started</div></div>
+      ) : adGroups.map(ag => (
+        <div key={ag.id} className="card">
+          <div className="card-header">
+            <div><div className="card-title gs">{ag.name}</div><div className="card-subtitle gs">Default CPC: ${ag.defaultBid} · {ag.keywords.length} keywords · {ag.ads.length} ads</div></div>
+            <button className="btn btn-danger btn-sm gs" onClick={()=>setAdGroups(adGroups.filter(x=>x.id!==ag.id))}>Remove</button>
+          </div>
+          <div className="flex-wrap">
+            <Pill color="blue">{ag.keywords.length} Keywords</Pill>
+            <Pill color="red">{ag.negativeKeywords.length} Negatives</Pill>
+            <Pill color="green">{ag.ads.length} Ads</Pill>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── STEP 3: KEYWORDS ───
+
+function KeywordsStep({ adGroups, setAdGroups }) {
+  const [selectedGroup, setSelectedGroup] = useState(adGroups[0]?.id?.toString() || "");
+  const [kwInput, setKwInput] = useState("");
+  const [matchType, setMatchType] = useState("Broad");
+
+  const addKeywords = () => {
+    if (!kwInput.trim() || !selectedGroup) return;
+    const newKws = kwInput.split("\n").filter(k=>k.trim()).map(k=>({ id: Date.now()+Math.random(), text: k.trim(), matchType }));
+    setAdGroups(adGroups.map(ag => ag.id === +selectedGroup ? {...ag, keywords:[...ag.keywords,...newKws]} : ag));
+    setKwInput("");
+  };
+  const group = adGroups.find(ag => ag.id === +selectedGroup);
+  const matchHint = { Broad: "Widest reach — includes related searches", Phrase: "Includes the meaning of your keyword", Exact: "Most precise — exact meaning or intent" };
+
+  if (adGroups.length === 0) return <div className="card"><div className="empty-state"><div className="empty-icon">📁</div><div className="empty-title gs">No ad groups yet</div><div className="empty-sub gs">Go back and create ad groups first</div></div></div>;
+
+  return (
+    <div>
+      <div className="card">
+        <div className="card-header"><div><div className="card-title gs">Add Keywords</div><div className="card-subtitle gs">Add keywords to your ad groups. Enter one keyword per line.</div></div></div>
+        <div className="grid-2">
+          <div className="form-group">
+            <label className="form-label gs">Ad Group</label>
+            <select className="form-select" value={selectedGroup} onChange={e=>setSelectedGroup(e.target.value)}>
+              {adGroups.map(ag=><option key={ag.id} value={ag.id}>{ag.name}</option>)}
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="form-label gs">Match Type</label>
+            <div className="form-hint gs">{matchHint[matchType]}</div>
+            <select className="form-select" value={matchType} onChange={e=>setMatchType(e.target.value)}>{MATCH_TYPES.map(m=><option key={m}>{m}</option>)}</select>
+          </div>
+        </div>
+        <div className="form-group">
+          <label className="form-label gs">Keywords (one per line)</label>
+          <textarea className="form-textarea" rows={5} value={kwInput} onChange={e=>setKwInput(e.target.value)} placeholder={"online mba program\nmba degree online\naffordable mba\nbest online mba programs"} />
+        </div>
+        <button className="btn btn-primary gs" disabled={!kwInput.trim()} onClick={addKeywords}>+ Add Keywords</button>
+      </div>
+
+      {group && group.keywords.length > 0 && (
+        <div className="card">
+          <div className="card-header"><div><div className="card-title gs">Keywords in "{group.name}"</div><div className="card-subtitle gs">{group.keywords.length} keywords total</div></div></div>
+          <div className="flex-wrap">
+            {group.keywords.map(kw => (
+              <Pill key={kw.id} color={matchColor[kw.matchType]} onRemove={()=>setAdGroups(adGroups.map(ag=>ag.id===group.id?{...ag,keywords:ag.keywords.filter(k=>k.id!==kw.id)}:ag))}>{formatKw(kw)}</Pill>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {adGroups.some(ag=>ag.keywords.length>0) && (
+        <div className="card">
+          <div className="card-header"><div><div className="card-title gs">All Keywords Overview</div></div></div>
+          <div style={{overflowX:"auto"}}>
+            <table className="data-table gs">
+              <thead><tr><th>Ad Group</th><th>Keyword</th><th>Match Type</th></tr></thead>
+              <tbody>
+                {adGroups.flatMap(ag=>ag.keywords.map(kw=>(
+                  <tr key={kw.id}><td>{ag.name}</td><td><code style={{fontFamily:"'Roboto Mono',monospace",fontSize:13}}>{formatKw(kw)}</code></td><td><Pill color={matchColor[kw.matchType]}>{kw.matchType}</Pill></td></tr>
+                )))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── STEP 4: NEGATIVES ───
+
+function NegativesStep({ adGroups, setAdGroups, campaignNegatives, setCampaignNegatives }) {
+  const [level, setLevel] = useState("campaign");
+  const [selectedGroup, setSelectedGroup] = useState(adGroups[0]?.id?.toString() || "");
+  const [nkInput, setNkInput] = useState("");
+  const [matchType, setMatchType] = useState("Phrase");
+
+  const add = () => {
+    if (!nkInput.trim()) return;
+    const newNks = nkInput.split("\n").filter(k=>k.trim()).map(k=>({ id: Date.now()+Math.random(), text: k.trim(), matchType }));
+    if (level === "campaign") setCampaignNegatives([...campaignNegatives, ...newNks]);
+    else setAdGroups(adGroups.map(ag=>ag.id===+selectedGroup?{...ag,negativeKeywords:[...ag.negativeKeywords,...newNks]}:ag));
+    setNkInput("");
+  };
+
+  return (
+    <div>
+      <div className="card">
+        <div className="card-header"><div><div className="card-title gs">Negative Keywords</div><div className="card-subtitle gs">Prevent your ads from showing on irrelevant searches. Apply at campaign level (affects all ad groups) or ad group level.</div></div></div>
+        <div style={{display:"flex",gap:8,marginBottom:16}}>
+          <button className={`tab-btn gs ${level==="campaign"?"active":""}`} onClick={()=>setLevel("campaign")}>Campaign Level</button>
+          <button className={`tab-btn gs ${level==="adgroup"?"active":""}`} onClick={()=>setLevel("adgroup")}>Ad Group Level</button>
+        </div>
+        {level === "adgroup" && adGroups.length > 0 && (
+          <div className="form-group"><label className="form-label gs">Ad Group</label><select className="form-select" value={selectedGroup} onChange={e=>setSelectedGroup(e.target.value)}>{adGroups.map(ag=><option key={ag.id} value={ag.id}>{ag.name}</option>)}</select></div>
+        )}
+        <div className="grid-2">
+          <div className="form-group"><label className="form-label gs">Negative Keywords (one per line)</label><textarea className="form-textarea" rows={4} value={nkInput} onChange={e=>setNkInput(e.target.value)} placeholder={"free\njobs\nsalary\nreddit\nreview"} /></div>
+          <div className="form-group"><label className="form-label gs">Match Type</label><select className="form-select" value={matchType} onChange={e=>setMatchType(e.target.value)}>{MATCH_TYPES.map(m=><option key={m}>{m}</option>)}</select></div>
+        </div>
+        <button className="btn btn-primary gs" disabled={!nkInput.trim()} onClick={add}>+ Add Negatives</button>
+      </div>
+
+      {campaignNegatives.length > 0 && (
+        <div className="card">
+          <div className="card-header"><div><div className="card-title gs">Campaign-Level Negatives</div><div className="card-subtitle gs">{campaignNegatives.length} negative keywords</div></div></div>
+          <div className="flex-wrap">{campaignNegatives.map(nk=><Pill key={nk.id} color="red" onRemove={()=>setCampaignNegatives(campaignNegatives.filter(x=>x.id!==nk.id))}>{formatKw(nk)}</Pill>)}</div>
+        </div>
+      )}
+
+      {adGroups.filter(ag=>ag.negativeKeywords.length>0).map(ag=>(
+        <div key={ag.id} className="card">
+          <div className="card-header"><div><div className="card-title gs">Negatives in "{ag.name}"</div><div className="card-subtitle gs">{ag.negativeKeywords.length} negative keywords</div></div></div>
+          <div className="flex-wrap">{ag.negativeKeywords.map(nk=><Pill key={nk.id} color="red" onRemove={()=>setAdGroups(adGroups.map(g=>g.id===ag.id?{...g,negativeKeywords:g.negativeKeywords.filter(x=>x.id!==nk.id)}:g))}>{formatKw(nk)}</Pill>)}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── STEP 5: ADS ───
+
+function AdsStep({ adGroups, setAdGroups }) {
+  const [selectedGroup, setSelectedGroup] = useState(adGroups[0]?.id?.toString() || "");
+  const emptyAd = { headlines: Array(15).fill(""), descriptions: Array(4).fill(""), finalUrl: "", path1: "", path2: "" };
+  const [ad, setAd] = useState({...emptyAd});
+  const group = adGroups.find(ag=>ag.id===+selectedGroup);
+
+  const updateHL = (i,v) => { const h=[...ad.headlines]; h[i]=v; setAd({...ad,headlines:h}); };
+  const updateDesc = (i,v) => { const d=[...ad.descriptions]; d[i]=v; setAd({...ad,descriptions:d}); };
+  const filledHL = ad.headlines.filter(h=>h.trim());
+  const filledDesc = ad.descriptions.filter(d=>d.trim());
+  const canSave = filledHL.length >= 3 && filledDesc.length >= 2 && ad.finalUrl.trim();
+
+  const saveAd = () => {
+    if (!canSave || !group) return;
+    const newAd = { id: Date.now(), headlines: ad.headlines.filter(h=>h.trim()), descriptions: ad.descriptions.filter(d=>d.trim()), finalUrl: ad.finalUrl, path1: ad.path1, path2: ad.path2 };
+    setAdGroups(adGroups.map(ag=>ag.id===group.id?{...ag,ads:[...ag.ads,newAd]}:ag));
+    setAd({...emptyAd});
+  };
+
+  const previewUrl = ad.finalUrl ? ad.finalUrl.replace(/^https?:\/\//,"").split("/")[0] : "example.com";
+
+  if (adGroups.length === 0) return <div className="card"><div className="empty-state"><div className="empty-icon">📁</div><div className="empty-title gs">No ad groups yet</div><div className="empty-sub gs">Go back and create ad groups first</div></div></div>;
+
+  return (
+    <div>
+      <div className="card">
+        <div className="card-header"><div><div className="card-title gs">Responsive Search Ad Builder</div><div className="card-subtitle gs">Google Ads will automatically test combinations of your headlines and descriptions.</div></div></div>
+        <div className="form-group"><label className="form-label gs">Ad Group</label><select className="form-select" value={selectedGroup} onChange={e=>setSelectedGroup(e.target.value)}>{adGroups.map(ag=><option key={ag.id} value={ag.id}>{ag.name}</option>)}</select></div>
+        <div className="form-group"><label className="form-label gs">Final URL</label><input className="form-input" value={ad.finalUrl} onChange={e=>setAd({...ad,finalUrl:e.target.value})} placeholder="https://www.example.com/landing-page" /></div>
+        <div className="grid-2">
+          <div className="form-group"><label className="form-label gs">Display Path 1</label><div className="form-hint gs">15 chars max</div><input className="form-input" value={ad.path1} onChange={e=>setAd({...ad,path1:e.target.value})} placeholder="e.g. programs" maxLength={15} /></div>
+          <div className="form-group"><label className="form-label gs">Display Path 2</label><div className="form-hint gs">15 chars max</div><input className="form-input" value={ad.path2} onChange={e=>setAd({...ad,path2:e.target.value})} placeholder="e.g. mba" maxLength={15} /></div>
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-header"><div><div className="card-title gs">Headlines ({filledHL.length}/15)</div><div className="card-subtitle gs">Add 3–15 headlines. Each up to 30 characters. Google shows up to 3 at a time.</div></div></div>
+        <div className="headline-grid">
+          {ad.headlines.map((h,i) => (
+            <div key={i}>
+              <div className="hl-label gs">Headline {i+1} {i<3 && <span className="hl-required">*</span>}</div>
+              <input className="hl-input" value={h} onChange={e=>updateHL(i,e.target.value)} maxLength={30} placeholder={i<3?"Required":"Optional"} />
+              <CharCounter current={h.length} max={30} />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="card-header"><div><div className="card-title gs">Descriptions ({filledDesc.length}/4)</div><div className="card-subtitle gs">Add 2–4 descriptions. Each up to 90 characters. Google shows up to 2 at a time.</div></div></div>
+        {ad.descriptions.map((d,i) => (
+          <div key={i} className="desc-block">
+            <div className="hl-label gs">Description {i+1} {i<2 && <span className="hl-required">*</span>}</div>
+            <textarea className="desc-textarea" value={d} onChange={e=>updateDesc(i,e.target.value)} maxLength={90} rows={2} placeholder={i<2?"Required — up to 90 characters":"Optional — up to 90 characters"} />
+            <CharCounter current={d.length} max={90} />
+          </div>
+        ))}
+      </div>
+
+      <div className="card">
+        <div className="card-header"><div><div className="card-title gs">Ad Preview</div><div className="card-subtitle gs">Approximation of how your ad might appear on Google Search</div></div></div>
+        <div className="ad-preview">
+          <div className="ad-url"><span className="ad-sponsored">Sponsored</span>{previewUrl}{ad.path1 ? "/"+ad.path1 : ""}{ad.path2 ? "/"+ad.path2 : ""}</div>
+          <div className="ad-headline">{filledHL.length > 0 ? filledHL.slice(0,3).join(" | ") : "Your Headline 1 | Headline 2 | Headline 3"}</div>
+          <div className="ad-desc">{filledDesc.length > 0 ? filledDesc.slice(0,2).join(" ") : "Your description will appear here. Add compelling copy to encourage clicks."}</div>
+        </div>
+      </div>
+
+      <div style={{display:"flex",gap:12,marginTop:8,marginBottom:16,alignItems:"center"}}>
+        <button className="btn btn-primary gs" disabled={!canSave} onClick={saveAd}>Save Ad to "{group?.name || "..."}"</button>
+        {!canSave && <span className="gs" style={{fontSize:12,color:"#80868b"}}>Need at least 3 headlines, 2 descriptions, and a final URL</span>}
+      </div>
+
+      {adGroups.filter(ag=>ag.ads.length>0).map(ag=>(
+        <div key={ag.id} className="card">
+          <div className="card-header"><div><div className="card-title gs">Ads in "{ag.name}"</div><div className="card-subtitle gs">{ag.ads.length} responsive search ad(s)</div></div></div>
+          {ag.ads.map(a=>(
+            <div key={a.id} className="saved-ad">
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div>
+                  <div style={{fontSize:14,color:"#1a0dab",fontFamily:"Arial,sans-serif",marginBottom:4}}>{a.headlines.slice(0,3).join(" | ")}</div>
+                  <div style={{fontSize:13,color:"#4d5156",fontFamily:"Arial,sans-serif"}}>{a.descriptions.slice(0,2).join(" ")}</div>
+                  <div className="gs" style={{fontSize:12,color:"#80868b",marginTop:4}}>{a.headlines.length} headlines · {a.descriptions.length} descriptions · {a.finalUrl}</div>
+                </div>
+                <button className="btn btn-danger btn-sm gs" onClick={()=>setAdGroups(adGroups.map(g=>g.id===ag.id?{...g,ads:g.ads.filter(x=>x.id!==a.id)}:g))}>Remove</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── STEP 6: REVIEW ───
+
+function ReviewStep({ campaign, adGroups, campaignNegatives }) {
+  const totalKws = adGroups.reduce((s,ag)=>s+ag.keywords.length,0);
+  const totalNeg = campaignNegatives.length + adGroups.reduce((s,ag)=>s+ag.negativeKeywords.length,0);
+  const totalAds = adGroups.reduce((s,ag)=>s+ag.ads.length,0);
+
+  const issues = [];
+  if (!campaign.name) issues.push("Campaign name is empty");
+  if (!campaign.dailyBudget) issues.push("No daily budget set");
+  if (adGroups.length===0) issues.push("No ad groups created");
+  if (totalKws===0) issues.push("No keywords added");
+  if (totalAds===0) issues.push("No ads created");
+  adGroups.forEach(ag=>{ if(!ag.keywords.length) issues.push(`Ad group "${ag.name}" has no keywords`); if(!ag.ads.length) issues.push(`Ad group "${ag.name}" has no ads`); });
+
+  return (
+    <div>
+      {issues.length > 0 && (
+        <div className="banner-warn">
+          <div className="gs" style={{fontWeight:600,fontSize:14,color:"#b45309",marginBottom:8}}>⚠️ Issues to Resolve ({issues.length})</div>
+          {issues.map((iss,i) => <div key={i} className="gs" style={{fontSize:13,color:"#92400e",marginBottom:4}}>• {iss}</div>)}
+        </div>
+      )}
+
+      <div className="grid-5" style={{marginBottom:20}}>
+        {[{l:"Ad Groups",v:adGroups.length,i:"📁"},{l:"Keywords",v:totalKws,i:"🔑"},{l:"Negatives",v:totalNeg,i:"🚫"},{l:"Ads",v:totalAds,i:"📝"},{l:"Daily Budget",v:"$"+(campaign.dailyBudget||"0"),i:"💰"}].map(s=>(
+          <div key={s.l} className="stat-box"><div className="stat-icon">{s.i}</div><div className="stat-value gs">{s.v}</div><div className="stat-label gs">{s.l}</div></div>
+        ))}
+      </div>
+
+      <div className="card">
+        <div className="card-header"><div><div className="card-title gs">📊 Campaign: {campaign.name || "(unnamed)"}</div></div></div>
+        <div className="grid-2">
+          {[["Bid Strategy",campaign.bidStrategy],["Daily Budget","$"+(campaign.dailyBudget||"—")],["Networks",campaign.networks.join(", ")||"—"],["Devices",campaign.devices],["Locations",campaign.locations||"—"],["Languages",campaign.languages||"—"],["Start Date",campaign.startDate||"—"],["End Date",campaign.endDate||"None"],["Ad Schedule",campaign.adSchedule]].map(([k,v])=>(
+            <div key={k} className="review-row gs"><span className="review-key">{k}:</span> <span className="review-val">{v}</span></div>
+          ))}
+        </div>
+      </div>
+
+      {adGroups.map(ag=>(
+        <div key={ag.id} className="card">
+          <div className="card-header"><div><div className="card-title gs">📁 {ag.name}</div><div className="card-subtitle gs">CPC: ${ag.defaultBid}</div></div></div>
+          <div style={{marginBottom:12}}><div className="section-label gs">Keywords ({ag.keywords.length})</div><div className="flex-wrap">{ag.keywords.length>0?ag.keywords.map(kw=><Pill key={kw.id} color={matchColor[kw.matchType]}>{formatKw(kw)}</Pill>):<span className="gs" style={{fontSize:13,color:"#80868b",fontStyle:"italic"}}>None</span>}</div></div>
+          {ag.negativeKeywords.length>0&&<div style={{marginBottom:12}}><div className="section-label gs">Negatives ({ag.negativeKeywords.length})</div><div className="flex-wrap">{ag.negativeKeywords.map(nk=><Pill key={nk.id} color="red">{formatKw(nk)}</Pill>)}</div></div>}
+          <div><div className="section-label gs">Ads ({ag.ads.length})</div>
+            {ag.ads.length>0?ag.ads.map(a=>(
+              <div key={a.id} className="saved-ad">
+                <div style={{fontSize:14,color:"#1a0dab",fontFamily:"Arial,sans-serif"}}>{a.headlines.slice(0,3).join(" | ")}</div>
+                <div style={{fontSize:13,color:"#4d5156",fontFamily:"Arial,sans-serif",marginTop:4}}>{a.descriptions.slice(0,2).join(" ")}</div>
+                <div className="gs" style={{fontSize:11,color:"#80868b",marginTop:4}}>{a.headlines.length} headlines · {a.descriptions.length} descriptions · {a.finalUrl}</div>
+              </div>
+            )):<span className="gs" style={{fontSize:13,color:"#80868b",fontStyle:"italic"}}>None</span>}
+          </div>
+        </div>
+      ))}
+
+      {campaignNegatives.length>0&&(
+        <div className="card">
+          <div className="card-header"><div><div className="card-title gs">🚫 Campaign-Level Negatives</div><div className="card-subtitle gs">{campaignNegatives.length} negative keywords</div></div></div>
+          <div className="flex-wrap">{campaignNegatives.map(nk=><Pill key={nk.id} color="red">{formatKw(nk)}</Pill>)}</div>
+        </div>
+      )}
+
+      {issues.length===0&&(
+        <div className="banner-success">
+          <div style={{fontSize:32,marginBottom:8}}>🎉</div>
+          <div className="gs" style={{fontSize:16,fontWeight:600,color:"#137333"}}>Campaign Ready for Launch</div>
+          <div className="gs" style={{fontSize:13,color:"#137333",marginTop:4}}>All required elements are in place. In a real environment, you'd click "Publish Campaign" to go live.</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── MAIN APP ───
+
+function App() {
+  const [step, setStep] = useState(0);
+  const [campaign, setCampaign] = useState({
+    name:"", bidStrategy:"Maximize Clicks", dailyBudget:"", startDate:"", endDate:"",
+    networks:["Google Search","Search Partners"], locations:"", languages:"English",
+    devices:"All Devices", adSchedule:"All Day", targetCpa:"", targetRoas:"",
+  });
+  const [adGroups, setAdGroups] = useState([]);
+  const [campaignNegatives, setCampaignNegatives] = useState([]);
+  const canProceed = (s) => { if(s===0) return !!campaign.name.trim(); if(s===1) return adGroups.length>0; return true; };
+
+  return (
+    <div>
+      {/* Header */}
+      <div className="header">
+        <div className="header-inner">
+          <div className="header-logo">
+            <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285f4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34a853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#fbbc05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#ea4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            <span style={{fontSize:18,fontWeight:500,color:"#5f6368"}}>Ads</span>
+          </div>
+          <div className="header-divider" />
+          <span className="header-title gs">Campaign Sandbox</span>
+          <div style={{marginLeft:"auto"}}><span className="training-badge gs">Training Mode</span></div>
+        </div>
+      </div>
+
+      {/* Stepper */}
+      <div className="stepper">
+        <div className="stepper-inner">
+          {STEPS.map((s,i) => (
+            <button key={s.id} className={`step-btn gs ${i===step?"active":i<step?"done":"pending"}`} onClick={()=>setStep(i)}>
+              <span className={`step-num ${i===step?"active":i<step?"done":"pending"}`}>{i<step?"✓":i+1}</span>
+              <span>{s.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="content">
+        {step===0 && <CampaignStep data={campaign} setData={setCampaign} />}
+        {step===1 && <AdGroupsStep adGroups={adGroups} setAdGroups={setAdGroups} />}
+        {step===2 && <KeywordsStep adGroups={adGroups} setAdGroups={setAdGroups} />}
+        {step===3 && <NegativesStep adGroups={adGroups} setAdGroups={setAdGroups} campaignNegatives={campaignNegatives} setCampaignNegatives={setCampaignNegatives} />}
+        {step===4 && <AdsStep adGroups={adGroups} setAdGroups={setAdGroups} />}
+        {step===5 && <ReviewStep campaign={campaign} adGroups={adGroups} campaignNegatives={campaignNegatives} />}
+      </div>
+
+      {/* Bottom Nav */}
+      <div className="bottom-nav">
+        <div className="bottom-inner">
+          <button className="btn btn-secondary gs" disabled={step===0} onClick={()=>setStep(Math.max(0,step-1))}>← Back</button>
+          <span className="bottom-label gs">Step {step+1} of {STEPS.length}: {STEPS[step].label}</span>
+          {step < STEPS.length-1 ? (
+            <button className="btn btn-primary gs" disabled={!canProceed(step)} onClick={()=>setStep(step+1)}>Continue →</button>
+          ) : (
+            <button className="btn btn-success gs">🚀 Publish Campaign</button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
